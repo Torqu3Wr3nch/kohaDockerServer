@@ -1,0 +1,43 @@
+version: '3'
+services:
+  db:
+    image: mariadb:latest
+    restart: always
+    environment:
+        MYSQL_ROOT_PASSWORD: password
+        MYSQL_DATABASE: koha_library
+        MYSQL_USER: koha_library
+        MYSQL_PASSWORD: password
+    volumes:
+      - mariadbKoha:/var/lib/mysql
+    networks:
+      - kohanet
+  ubuntu:
+    build: .
+    # stdin_open: true # docker run -i
+    # tty: true        # docker run -t
+    cap_add:
+      - SYS_NICE
+      - DAC_READ_SEARCH
+    volumes:
+      - koha:/etc/koha
+      - apacheKoha:/etc/apache2
+      - kohaLog:/var/log/koha
+    ports:
+      - "8879:80"
+      - "8880:8080"
+      - "8881:8081"
+    entrypoint: /etc/koha/postInstall.sh
+    depends_on:
+      - db
+    networks:
+        - kohanet
+
+volumes:
+  koha:
+  apacheKoha:
+  kohaLog:
+  mariadbKoha:
+
+networks:
+  kohanet:
